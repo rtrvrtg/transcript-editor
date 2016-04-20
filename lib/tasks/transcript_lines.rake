@@ -34,4 +34,19 @@ namespace :transcript_lines do
 
   end
 
+  task :from_vtt, [:transcript_id, :vtt_file] => :environment do |task, args|
+    args.with_default transcript_id: nil
+    args.with_default vtt_file: nil
+    if args[:transcript_id].nil?
+      raise "Transcript ID must be set"
+    end
+    if args[:vtt_file].nil?
+      raise "VTT file path must be set"
+    end
+
+    Transcript.find(args[:transcript_id]).loadFromHash(args[:vtt_file])
+  rescue InputError => e
+    raise e
+  end
+
 end

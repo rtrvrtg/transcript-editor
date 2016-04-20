@@ -171,6 +171,25 @@ class Transcript < ActiveRecord::Base
     end
   end
 
+  def loadFromVtt(file_path)
+    if !File.exists?(file_path)
+      raise InputError.new("VTT file #{file_path} does not exist")
+    end
+    vtt_data = _getDataFromVtt(file_path)
+    if vtt_data.has_key?(:transcript_lines) && vtt_data[:transcript_lines].is_a?(Array) && vtt_data[:transcript_lines].length > 0
+      TranscriptLine.destroy_all(:transcript_id => id)
+      TranscriptLine.create(vtt_data[:transcript_lines])
+      transcript_status = TranscriptStatus.find_by_name("transcript_downloaded")
+      transcript_duration = vtt_data[:duration]
+      update_attributes(lines: transcript_lines.length, transcript_status_id: transcript_status[:id], duration: transcript_duration, transcript_retrieved_at: DateTime.now)
+      puts "Created #{transcript_lines.length} lines from transcript #{uid}"
+    else
+      puts "No lines parsed from VTT file"
+    end
+  rescue InputError => e
+    raise e
+  end
+
   def recalculate
     return if lines <= 0
 
@@ -244,6 +263,36 @@ class Transcript < ActiveRecord::Base
       end
     end
     transcript_lines
+  end
+
+  def _fromVttTime(time)
+    matches = /(\d+):(\d+):(\d+)\.(\d+)/.match(time.to_s)
+    matches[3].to_f + (matches[4].to_f / 1000) + (matches[2].to_f * 60) + (matches[1].to_f * 3600)
+  end
+
+  def _getDataFromVtt(file_path, raw = false)
+    data = {
+      transcript_lines: [],
+      duration: 0
+    }
+    # Use WebVTT to parse data.
+    vtt = WebVTT.read(file_path)
+    data[:total_length] = vtt.total_length
+    vtt.cues.each_with_index { |cue, i|
+      # Style tags are filtered out of cue text unless raw is true.
+      line = (raw == true) ? cue.text : cue.text.gsub(/<[^>]*>/, '')
+      data[:transcript_lines] << {
+        transcript_id: id,
+        start_time: _fromVttTime(cue.start),
+        end_time: _fromVttTime(cue.end),
+        original_text: line,
+        sequence: i,
+        speaker_id: 0
+      }
+    }
+    data
+  rescue InputError => e
+    raise e
   end
 
 end

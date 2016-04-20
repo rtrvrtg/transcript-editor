@@ -38,10 +38,10 @@ namespace :transcript_lines do
     args.with_default transcript_id: nil
     args.with_default vtt_file: nil
     if args[:transcript_id].nil?
-      raise InputError.new("Transcript ID must be set")
+      raise ArgumentError.new("Transcript ID must be set")
     end
     if args[:vtt_file].nil?
-      raise InputError.new("VTT file path must be set")
+      raise ArgumentError.new("VTT file path must be set")
     end
 
     Transcript.find(args[:transcript_id]).loadFromVtt(args[:vtt_file])

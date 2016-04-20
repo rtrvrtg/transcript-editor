@@ -44,7 +44,7 @@ namespace :transcript_lines do
       raise InputError.new("VTT file path must be set")
     end
 
-    Transcript.find(args[:transcript_id]).loadFromHash(args[:vtt_file])
+    Transcript.find(args[:transcript_id]).loadFromVtt(args[:vtt_file])
   end
 
 end

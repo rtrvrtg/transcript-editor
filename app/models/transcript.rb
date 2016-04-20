@@ -173,7 +173,7 @@ class Transcript < ActiveRecord::Base
 
   def loadFromVtt(file_path)
     if !File.exists?(file_path)
-      raise InputError.new("VTT file #{file_path} does not exist")
+      raise IOError.new("VTT file #{file_path} does not exist")
     end
     vtt_data = _getDataFromVtt(file_path)
     if vtt_data.has_key?(:transcript_lines) && vtt_data[:transcript_lines].is_a?(Array) && vtt_data[:transcript_lines].length > 0
@@ -186,7 +186,7 @@ class Transcript < ActiveRecord::Base
     else
       puts "No lines parsed from VTT file"
     end
-  rescue InputError => e
+  rescue WebVTT::InputError => e
     raise e
   end
 
@@ -291,7 +291,7 @@ class Transcript < ActiveRecord::Base
       }
     }
     data
-  rescue InputError => e
+  rescue WebVTT::InputError => e
     raise e
   end
 

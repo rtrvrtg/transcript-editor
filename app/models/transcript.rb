@@ -267,9 +267,15 @@ class Transcript < ActiveRecord::Base
     transcript_lines
   end
 
+  # Parses VTT timestamp and returns time in milliseconds.
   def _fromVttTime(time)
     matches = /(\d+):(\d+):(\d+)\.(\d+)/.match(time.to_s)
-    matches[3].to_f + (matches[4].to_f / 1000) + (matches[2].to_f * 60) + (matches[1].to_f * 3600)
+    [
+      (matches[1].to_i * 3600 * 1000), # Hours
+      (matches[2].to_i * 60 * 1000), # Minutes
+      (matches[3].to_i * 1000), # Seconds
+      (matches[4].to_i) # Milliseconds
+    ].inject(0, :+)
   end
 
   def _getDataFromVtt(file_path, raw = false)

@@ -1,3 +1,5 @@
+require 'webvtt'
+
 class Transcript < ActiveRecord::Base
 
   include PgSearch
